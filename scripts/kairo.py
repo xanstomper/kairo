@@ -147,9 +147,9 @@ def cmd_report(args):
         planes = d.get("planes", {})
         if not planes:
             L.append("- no planes probed yet")
-        for n in sorted(planes):
+        for n in sorted(planes, key=int):
             p = planes[n]
-            L.append(f"- **{PLANES[n]}**: {p['status']}"
+            L.append(f"- **{PLANES[int(n)]}**: {p['status']}"
                      + (f" — {p['test']}" if p.get("test") else ""))
         for note in d.get("notes", []):
             L.append(f"- ⚑ {note['finding']}" + (f" (evidence: {note['evidence']})" if note.get("evidence") else ""))
