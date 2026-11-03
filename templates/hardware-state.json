@@ -1,0 +1,22 @@
+{
+  "target": "<campaign name>",
+  "created": "<ISO-8601>",
+  "devices": [
+    {
+      "name": "<device>",
+      "kind": "router|panel|phone|radio|console|sensor|other",
+      "access": "logical|serial|radio|physical|none",
+      "desc": "",
+      "planes": {
+        "1": {"status": "PROBED|N/A|CONFIRMED|EXHAUSTED", "test": "", "score": 0, "at": ""}
+      },
+      "notes": [
+        {"finding": "", "evidence": "", "at": ""}
+      ],
+      "added": "<ISO-8601>"
+    }
+  ],
+  "ledger": [
+    {"device": "", "plane": 1, "plane_name": "", "status": "", "test": "", "at": ""}
+  ]
+}
