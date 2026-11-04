@@ -35,7 +35,7 @@ family's power from where it's generated to where it's used.
                     ╲                │                ╱                 ▲
                      └───────────────┴─────── findings ─────────────────┘
                                     KAIRO distributes compiled attacks back
-        SHIKI (command — parked): orchestrates the family as one assault
+        SHIKI (command — conducts assaults): orchestrates the family as one assault
 ```
 
 ## When to Use
@@ -168,12 +168,15 @@ State: `~/.redteam/campaigns/<target>/hardware-state.json` (+ `synthesis_queue`,
 
 ## Relations
 
+- `barbican` — THE FIRST LAYER (v1.1.0): operator-protection synthesizer — vantage, identity, artifacts, trail, timeline, cleanup. Runs BEFORE every engagement; 3AM's pacing inherits its timeline layer; zero-document gate enforced by it.
+
+
 - `holyshit-mode` — the finder: its findings and case canon feed the forge; KAIRO
   writes synthesized recipe cards back into family canon.
 - `3am-shinjitsu` — the performer: KAIRO's compiled rows feed its matrix
   (`learn`/`promote`); its BLOCKED verdicts and chains feed KAIRO's queue.
 - `undercroft` — the descent: its CONFIRMED seams are KAIRO's richest input;
   KAIRO writes compiled crafts back into its ledger.
-- `shiki` — parked command mandate; will orchestrate the family assault later.
+- `shiki` — THE COMMAND (v2.0.0): `shiki assault` runs the whole family in order — barbican gate → holyshit find → undercroft descend → kairo forge+chain → war board + joint verdict.
 - Family doctrine: HolyShit (finder) · 3AM (performer) · UNDERCROFT (descent) ·
   KAIRO (synthesizer) · SHIKI (command). Every mandate attacks; KAIRO arms them all.
