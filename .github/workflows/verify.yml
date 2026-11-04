@@ -1,0 +1,32 @@
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile
+        run: python3 -m py_compile scripts/kairo.py
+
+      - name: CLI smoke tests
+        run: |
+          set -e
+          S=scripts/kairo.py
+          python3 $S --help > /dev/null
+          python3 $S verify | grep -q 'ALL PASS'
+          for c in ingest synthesize compile distribute forge chain armory verify; do
+            python3 $S --help | grep -q "$c"
+          done
+          test -f templates/hardware-state.json
+          test -f references/synthesis-engine.md
+          test -f references/offensive-hardware-batteries.md
+
+      - name: Stdlib-only check
+        run: |
+          ! grep -E '^[[:space:]]*(import|from)[[:space:]]+(requests|flask|httpx|aiohttp|urllib3)' scripts/kairo.py
