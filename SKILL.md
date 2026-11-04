@@ -1,7 +1,7 @@
 ---
 name: kairo
 description: "Trigger `kairo`. The Synthesizer — turns every mandate's findings into compiled attacks and distributes them: 3AM vectors, undercroft crafts, holyshit recipes. Hardware is one of its domains."
-version: 2.1.0
+version: 2.2.0
 author: Hermes Agent
 license: MIT
 platforms: [linux]
@@ -152,7 +152,10 @@ EXHAUSTED seams are skipped at ingest.
 - `compile --target <t> [--write]` — vectors → per-consumer artifacts (dry run default)
 - `distribute --target <t>` — one-shot supply drop to all consumers
 - `forge --target <t> [--expand]` — one command: ingest → synthesize (variants) → distribute
-- `chain --target <t> [--hops N] [--write]` — multi-hop attack-chain synthesis
+- `chain --target <t> [--hops N] [--write] [--validate]` — multi-hop attack-chain synthesis / integrity check (hops exist · ordering · final impact gate)
+- `gene --check --target <t>` — the five-gene validator: every vector carries all five genes or the command exits 1 (NO Δ = NO VECTOR, enforced as an exit code)
+- `queue --show --target <t>` — synthesis queue viewer: pending/synthesized/exhausted by class + source
+- `crossdomain --target <t> --from web --to hardware|radio` — the TRANSPOSE operator across domain planes → PROBED metal probe plans (lab-first, never auto-CONFIRMED)
 - `armory --target <t>` — the family arsenal status
 - `targets add|list` / `phase` / `notes` / `report` — the hardware domain (unchanged)
 - `verify` — self-check

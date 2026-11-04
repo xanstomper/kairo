@@ -20,9 +20,18 @@ jobs:
           S=scripts/kairo.py
           python3 $S --help > /dev/null
           python3 $S verify | grep -q 'ALL PASS'
-          for c in ingest synthesize compile distribute forge chain armory verify; do
+          for c in ingest synthesize compile distribute forge chain armory gene queue crossdomain verify; do
             python3 $S --help | grep -q "$c"
           done
+          export HOME="$RUNNER_TEMP/kairo-home"; mkdir -p "$HOME/.redteam/campaigns/t"
+          printf '{"target":"t","devices":[],"ledger":[],"synthesis_queue":[{"source":"undercroft","finding":"org_id swap","where":"","proof":"","status":"CONFIRMED"}],"vectors":[{"id":"SV-1","source":"undercroft","class":"BOUNDARY","target":"org_id","where":"/api","technique":"swap","proof":"200","delta":"d","gene":{"trigger":"t","precondition":"p","primitive":"m","impact_gate":"g","delta":"Δ"}}],"chains":[]}' > "$HOME/.redteam/campaigns/t/hardware-state.json"
+          python3 $S gene --check --target t | grep -q 'ALL VECTORS COMPLETE'
+          python3 $S queue --show --target t | grep -q 'SYNTHESIS QUEUE'
+          python3 $S crossdomain --target t --from web --to hardware | grep -q 'transposed probe plan'
+          python3 $S crossdomain --target t --from hardware --to radio 2>/dev/null && exit 1 || test $? -eq 2
+          printf '{"target":"t","devices":[],"ledger":[],"synthesis_queue":[],"vectors":[{"id":"SV-1","class":"BOUNDARY","gene":{"trigger":"t","precondition":"p","primitive":"m","impact_gate":"g","delta":""}}],"chains":[{"chain":"BOUNDARY:TAKEOVER","hops":[{"id":"SV-GHOST","class":"MATH","technique":"x"}],"status":"TAKEOVER-CANDIDATE"}]}' > "$HOME/.redteam/campaigns/t/hardware-state.json"
+          python3 $S gene --check --target t 2>/dev/null && exit 1 || test $? -eq 1
+          python3 $S chain --target t --validate 2>/dev/null && exit 1 || test $? -eq 1
           test -f templates/hardware-state.json
           test -f references/synthesis-engine.md
           test -f references/offensive-hardware-batteries.md

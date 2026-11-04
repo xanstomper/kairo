@@ -142,7 +142,10 @@ python3 kairo/scripts/kairo.py armory --target t           # the arsenal at a gl
 | `compile --target T [--write]` | vectors → per-consumer artifacts (dry run default) |
 | `distribute --target T` | one-shot supply drop to all consumers |
 | `forge --target T [--expand]` | one command: ingest → synthesize (variants) → distribute |
-| `chain --target T [--hops N] [--write]` | multi-hop attack-chain synthesis |
+| `chain --target T [--hops N] [--write] [--validate]` | multi-hop attack-chain synthesis / integrity check |
+| `gene --check --target T` | five-gene validator — NO Δ = NO VECTOR enforced as an exit code |
+| `queue --show --target T` | synthesis queue viewer (pending/synthesized/exhausted) |
+| `crossdomain --target T --from web --to hardware\|radio` | TRANSPOSE web classes → metal probe plans (PROBED, lab-first) |
 | `armory --target T` | the family arsenal status |
 | `targets add\|list` / `phase` / `notes` / `report` | the hardware domain |
 | `verify` | self-check |

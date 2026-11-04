@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-KAIRO — offensive hardware/embedded engagement CLI. stdlib-only.
+KAIRO — offensive hardware/embedded engagement CLI + the family's synthesizer.
+stdlib-only.
 
-Tracks per-device inventory, plane coverage, findings, and the P5 report.
+Tracks per-device inventory, plane coverage, findings, synthesis, and the P5 report.
 State: ~/.redteam/campaigns/<target>/hardware-state.json (survives sessions).
 
 Commands:
@@ -13,10 +14,22 @@ Commands:
   phase         --target <t> --device <d> --plane 1-5 --status PROBED|N/A|CONFIRMED|EXHAUSTED
                 [--test "<exact test>"] [--score N]     plane coverage + ledger
   notes         --target <t> --device <d> --add "<finding>" [--evidence "..."]
+  ingest        --target <t>              family states → synthesis queue
+  synthesize    --target <t>              findings → attack vectors (class + five-gene)
+  compile       --target <t> [--write]    vectors → per-consumer artifacts
+  distribute    --target <t>              compile --write: the one-shot supply drop
+  forge         --target <t> [--expand]   ingest → synthesize → distribute
+  chain         --target <t> [--hops N] [--write] [--validate]
+                                          multi-hop chains / integrity check
+  gene          --check --target <t>      five-gene validator (NO Δ = NO VECTOR)
+  queue         --show --target <t>       synthesis queue viewer
+  crossdomain   --target <t> --from web --to hardware|radio
+                                          TRANSPOSE web classes → metal probe plans
+  armory        --target <t>              the family arsenal at a glance
   report        --target <t> [--output F]                P5 deliverable
   verify        self-check: compile, subcommands, state schema
 
-Exit codes: 0 ok · 2 usage/state error.
+Exit codes: 0 ok · 1 gene/chain-validate failure · 2 usage/state error.
 """
 import argparse
 import json
@@ -168,7 +181,7 @@ def cmd_verify(args):
         bad.append("compile")
     for want in ("targets", "phase", "notes", "report", "verify",
                  "ingest", "synthesize", "compile", "distribute",
-                 "forge", "chain", "armory"):
+                 "forge", "chain", "armory", "gene", "queue", "crossdomain"):
         out = subprocess.run([sys.executable, str(self), "--help"],
                              capture_output=True, text=True).stdout
         if want not in out:
@@ -561,6 +574,152 @@ def cmd_armory(args):
     return 0
 
 
+# ── v2.2.0 the forge deepens: gene validator · queue viewer · crossdomain ─────
+
+TRANSPOSE_MAP = {
+    "BOUNDARY":    ("HWFLASH", "scope-id trust on the update/extract path: the device "
+                    "trusts the source id/slot field — probe with swapped slot ids (owned device, lab)"),
+    "REPLAY":      ("HDRADIO", "pairing/replay window on the radio plane: capture then "
+                    "replay the pairing/ack frames (owned device, lab spectrum)"),
+    "STATEBYPASS": ("HWFLASH", "out-of-order OTA/bootloader stages: fire stage N+2 "
+                    "before N+1 completes (owned device, lab)"),
+    "MATH":        ("HDRADIO", "precision drift in radio counters/counters-based logic: "
+                    "worst-case counter values ×N (lab observation)"),
+    "ENTITLEMENT": ("HWFLASH", "entitlement flags in firmware config: reorder the "
+                    "provisioning flow so the flag lands before its check (owned device, lab)"),
+    "AUTHBYPASS":  ("HDRADIO", "key/entropy gaps in pairing material: estimate effective "
+                    "bits from captured material (observation-only, lab)"),
+}
+
+
+def cmd_gene(args):
+    """The five-gene validator: NO Δ = NO VECTOR — enforced as a command."""
+    st = load_state(args.target)
+    if not st:
+        print(f"✗ no state for '{args.target}'", file=sys.stderr)
+        return 2
+    vectors = st.get("vectors", [])
+    if not vectors:
+        print("· no vectors yet — synthesize first (gene check passes vacuously)")
+        return 0
+    genes = (("trigger", "TRIGGER"), ("precondition", "PRECONDITION"),
+             ("primitive", "PRIMITIVE"), ("impact_gate", "IMPACT-GATE"),
+             ("delta", "Δ"))
+    bad_ids = []
+    print(f"═══ KAIRO GENE CHECK — {len(vectors)} vector(s) ═══")
+    for v in vectors:
+        g = v.get("gene", {})
+        marks = []
+        for key, label in genes:
+            ok = bool(str(g.get(key, "")).strip())
+            marks.append(f"{label}{'✓' if ok else '✗'}")
+            if not ok:
+                break
+        complete = all(str(g.get(k, "")).strip() for k, _ in genes)
+        print(f"  {v['id']:40s} {' '.join(marks)}")
+        if not complete:
+            bad_ids.append(v["id"])
+    if bad_ids:
+        print(f"✗ INCOMPLETE VECTORS ({len(bad_ids)}): {', '.join(bad_ids)}")
+        print("  NO Δ = NO VECTOR — fix or drop them before distribution")
+        return 1
+    print("✓ ALL VECTORS COMPLETE — five genes present on every vector")
+    return 0
+
+
+def cmd_queue(args):
+    """The synthesis queue viewer: what's pending, synthesized, exhausted."""
+    st = load_state(args.target)
+    if not st:
+        print(f"✗ no state for '{args.target}'", file=sys.stderr)
+        return 2
+    queue = st.get("synthesis_queue", [])
+    if not queue:
+        print("· queue empty — ingest first")
+        return 0
+    by_status = {}
+    for q in queue:
+        by_status.setdefault(q.get("status", "PROBED"), []).append(q)
+    print(f"═══ KAIRO SYNTHESIS QUEUE — {args.target} ({len(queue)} rows) ═══")
+    for status in ("CONFIRMED", "PROBED", "EXHAUSTED"):
+        rows = by_status.get(status, [])
+        if not rows:
+            continue
+        print(f"  {status}: {len(rows)}")
+        for q in rows[:12]:
+            cls = _classify(q.get("finding", "") + " " + q.get("where", ""))
+            print(f"    [{q.get('source', '?'):10s}] ({cls:12s}) "
+                  f"{q.get('finding', '')[:58]}")
+    synths = len(st.get("vectors", []))
+    print(f"  → {synths} vector(s) synthesized from queue so far · "
+          f"next: synthesize{' --expand' if synths == 0 else ''}")
+    return 0
+
+
+def cmd_crossdomain(args):
+    """The TRANSPOSE operator across domain planes: web class → metal probe plan."""
+    if args.frm != "web":
+        print("✗ transpose only runs web→metal (the metal domain already owns its "
+              "native classes — see offensive-hardware-batteries.md)", file=sys.stderr)
+        return 2
+    if args.to not in ("hardware", "radio"):
+        print("✗ --to hardware|radio", file=sys.stderr)
+        return 2
+    st = load_state(args.target)
+    if not st:
+        print(f"✗ no state for '{args.target}' — add a target first", file=sys.stderr)
+        return 2
+    plane = 1 if args.to == "hardware" else 3
+    ledger = st.setdefault("ledger", [])
+    known = {(e.get("device"), e.get("plane"), e.get("test")) for e in ledger}
+    made = 0
+    print(f"═══ KAIRO CROSSDOMAIN — web → {args.to} ({PLANES[plane]}) ═══")
+    for web_cls, (metal_cls, plan) in TRANSPOSE_MAP.items():
+        test = f"TRANSPOSED from {web_cls}: {plan}"
+        if ("crossdomain", plane, test) in known:
+            continue
+        ledger.append({"device": "crossdomain", "plane": plane,
+                       "plane_name": PLANES[plane], "status": "PROBED",
+                       "test": test[:140],
+                       "at": datetime.now(timezone.utc).isoformat()})
+        known.add(("crossdomain", plane, test))
+        made += 1
+        print(f"  {web_cls:12s} → {metal_cls:9s} {plan[:80]}")
+    save_state(args.target, st)
+    print(f"▸ {made} transposed probe plan(s) registered PROBED in the plane ledger")
+    print("  (never auto-CONFIRMED, never distributed — lab-first, owned devices)")
+    return 0
+
+
+def _validate_chains(st):
+    """Chain integrity: hops exist, ordering sane, final hop gated."""
+    vectors = {v["id"]: v for v in st.get("vectors", [])}
+    fails = []
+    print(f"═══ KAIRO CHAIN VALIDATION — {len(st.get('chains', []))} chain(s) ═══")
+    for c in st.get("chains", []):
+        problems = []
+        prev_order = -1
+        for i, hop in enumerate(c.get("hops", []), 1):
+            v = vectors.get(hop.get("id"))
+            if v is None:
+                problems.append(f"hop {i}: id {hop.get('id')} not in vector pool")
+                continue
+            order = CHAIN_ORDER.get(v["class"], 9)
+            if order < prev_order:
+                problems.append(f"hop {i}: {v['class']} breaks entry→mid→value ordering")
+            prev_order = order
+            if i == len(c.get("hops", [])) and not str(
+                    v.get("gene", {}).get("impact_gate", "")).strip():
+                problems.append(f"final hop lacks an impact gate")
+        status = "✓" if not problems else "✗"
+        print(f"  {status} {c['chain']}  [{c.get('status', '?')}]")
+        for p in problems:
+            print(f"      ! {p}")
+        if problems:
+            fails.append((c["chain"], problems))
+    return fails
+
+
 def main():
     ap = argparse.ArgumentParser(description="KAIRO — family synthesizer + hardware CLI")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -581,8 +740,19 @@ def main():
     ch.add_argument("--target", required=True)
     ch.add_argument("--hops", type=int, default=3)
     ch.add_argument("--write", action="store_true", help="write 3AM chain row")
+    ch.add_argument("--validate", action="store_true", help="integrity-check existing chains (hops exist, ordering, impact gate)")
     ar = sub.add_parser("armory", help="family armory: vectors · variants · chains · distribution")
     ar.add_argument("--target", required=True)
+    gn = sub.add_parser("gene", help="the five-gene validator (NO Δ = NO VECTOR)")
+    gn.add_argument("--check", action="store_true")
+    gn.add_argument("--target", required=True)
+    q = sub.add_parser("queue", help="synthesis queue viewer")
+    q.add_argument("--show", action="store_true")
+    q.add_argument("--target", required=True)
+    xd = sub.add_parser("crossdomain", help="TRANSPOSE web classes → metal probe plans")
+    xd.add_argument("--target", required=True)
+    xd.add_argument("--from", dest="frm", required=True, choices=("web",))
+    xd.add_argument("--to", required=True, choices=("hardware", "radio"))
 
     t = sub.add_parser("targets", help="register/list devices")
     t.add_argument("action", choices=("add", "list"))
@@ -635,9 +805,21 @@ def main():
     if a.cmd == "forge":
         return cmd_forge(a)
     if a.cmd == "chain":
+        if getattr(a, "validate", False):
+            st = load_state(a.target)
+            if not st:
+                print(f"✗ no state for '{a.target}'", file=sys.stderr)
+                return 2
+            return 1 if _validate_chains(st) else 0
         return cmd_chain(a)
     if a.cmd == "armory":
         return cmd_armory(a)
+    if a.cmd == "gene":
+        return cmd_gene(a)
+    if a.cmd == "queue":
+        return cmd_queue(a)
+    if a.cmd == "crossdomain":
+        return cmd_crossdomain(a)
     return 2
 
 

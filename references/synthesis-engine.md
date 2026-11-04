@@ -74,3 +74,53 @@ decisive proof lands.
 - Vectors are marked `distributed` after a supply drop — never double-shipped.
 - EXHAUSTED findings never enter the queue (negatives don't synthesize).
 - Every compiled attack inherits its source finding's P0 scope. No scope, no ship.
+
+## The five genes — formal table (enforced by `gene --check`)
+
+| Gene | Meaning | Where it comes from | What breaks without it |
+|---|---|---|---|
+| TRIGGER | the source finding that justifies the vector | ingest (undercroft/3AM/kairo states) | a vector aimed at nothing — fabrication |
+| PRECONDITION | declared estate + the access the finding proved | the source finding's declaration | out-of-scope execution |
+| PRIMITIVE | the class's mechanism (why it works) | the technique-class canon | a ritual with no theory — cannot adapt |
+| IMPACT-GATE | the decisive proof condition | the class's proof shape | no way to tell hit from miss |
+| **Δ** | the documented-class adaptation to THIS target | the operator's aiming | novel-weapon authorship (the wall) |
+
+`kairo gene --check --target T` prints the per-vector gene table and exits 1 if
+ANY vector misses a gene. NO Δ = NO VECTOR is not advice — it's an exit code.
+
+## The five operators — formal definitions
+
+| Op | Transform | Example | Wall note |
+|---|---|---|---|
+| SEAM | same primitive, adjacent trust seam (C↔E, B↔F, L↔M) | BOUNDARY on auth↔backend → same swap at edgefn↔db | seam is canon; primitive unchanged |
+| FAMILY | same primitive, sibling flaw family (6↔2, 5↔1, 10↔3, 17↔16, 18↔14) | identifier-trust → trust-in-client-params | flaw families are canon |
+| ESCALATE | read→write proof class (accepted→granted, 200→grants) | replay proof → duplicate-grant proof | still validation-only, reversed after |
+| MIRROR | invert the trust direction (the seam's other side) | server-trusts-client → client-trusts-server check | same test family, opposite side |
+| TRANSPOSE | same primitive, different domain surface | web BOUNDARY → HWFLASH slot-id trust | see the domain map below |
+
+Each op emits a CONCRETE variant: own id, technique, proof, Δ — never a note.
+
+## The TRANSPOSE domain map (web → metal)
+
+| Web class | Metal analogue | The transposed probe |
+|---|---|---|
+| BOUNDARY | HWFLASH | scope-id trust on update/extract paths — swapped slot ids (lab, owned device) |
+| REPLAY | HDRADIO | pairing/replay window — capture + replay ack frames (lab spectrum) |
+| STATEBYPASS | HWFLASH | out-of-order OTA/bootloader stages — N+2 before N+1 |
+| MATH | HDRADIO | precision drift in radio counters — worst values ×N |
+| ENTITLEMENT | HWFLASH | provisioning order — entitlement flag before its check |
+| AUTHBYPASS | HDRADIO | pairing-material entropy — effective bits from captures |
+
+`kairo crossdomain --target T --from web --to hardware|radio` registers each as a
+PROBED plane-ledger plan — lab-first, owned devices, never auto-CONFIRMED, never
+distributed.
+
+## Chain anatomy (`chain`, validated by `chain --validate`)
+
+- Hops play roles: **entry** (AUTHBYPASS/ENTITLEMENT, order 0) → **mid**
+  (BOUNDARY/REPLAY/STATEBYPASS/HDRADIO, order 1–2) → **value** (MATH/HWFLASH, order 3).
+- The final hop MUST carry an impact gate — its decisive proof is what flips the
+  chain to TAKEOVER; without the gate the chain is a PARTIAL (a named gap).
+- `chain --validate` checks: every hop id exists in the vector pool · ordering
+  respects entry→mid→value · final hop gated. Any failure → exit 1 with the
+  broken chain list. Chains are emitted in 3AM format (`A→B→C:TAKEOVER`).
