@@ -168,7 +168,7 @@ State: `~/.redteam/campaigns/<target>/hardware-state.json` (+ `synthesis_queue`,
 
 ## Relations
 
-- `/cyberbomb` — THE DISPATCHER (v1.0.0): the family's front door — any agent loads it first, states the goal, and the router sends the right mandate(s); `cyberbomb run` = the full pipeline, `cyberbomb verify` checks all six engines. The web's center.
+- `spydermonkey` — THE DISPATCHER (v1.0.0): the family's front door — any agent loads it first, states the goal, and the router sends the right mandate(s); `spydermonkey run` = the full pipeline, `spydermonkey verify` checks all six engines. The web's center.
 
 
 - `barbican` — THE FIRST LAYER (v1.1.0): operator-protection synthesizer — vantage, identity, artifacts, trail, timeline, cleanup. Runs BEFORE every engagement; 3AM's pacing inherits its timeline layer; zero-document gate enforced by it.
