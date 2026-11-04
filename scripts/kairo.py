@@ -255,7 +255,7 @@ def cmd_ingest(args):
         "target": args.target, "devices": [], "ledger": [], "synthesis_queue": [],
         "vectors": [], "created": datetime.now(timezone.utc).isoformat()}
     queue = st.setdefault("synthesis_queue", [])
-    known = {(q.get("source"), q.get("finding")) for q in queue}
+    known = {(q.get("source"), f'{q.get("finding")}@{q.get("where") or ""}') for q in queue}
     added = 0
     # UNDERCROFT state
     uc = camp / "undercroft-state.json"
@@ -325,14 +325,15 @@ def cmd_synthesize(args):
         print("· queue empty — ingest first")
         return 0
     vectors = st.setdefault("vectors", [])
-    known_v = {v.get("id") for v in vectors}
+    known_v = {(str(v.get("target") or ""), str(v.get("class") or "")) for v in vectors}
     n = 0
     for i, q in enumerate(queue):
         cls = _classify(q.get("finding", "") + " " + q.get("where", ""))
         spec = TECHNIQUE_CLASSES[cls]
+        key = (str(q.get("finding") or ""), cls)
+        if key in known_v:
+            continue  # content-dedupe: re-runs never mint duplicate vectors
         vid = f"SV-{args.target}-{i:03d}-{cls}"
-        if vid in known_v:
-            continue
         vec = {"id": vid, "source": q.get("source"), "class": cls,
                "target": q.get("finding"), "where": q.get("where", ""),
                "technique": spec["test"].format(asset=q.get("where") or q.get("finding")),
@@ -343,6 +344,7 @@ def cmd_synthesize(args):
                "consumers": ["3am", "undercroft", "holyshit", "kairo"],
                "at": datetime.now(timezone.utc).isoformat()}
         vectors.append(vec)
+        known_v.add(key)
         n += 1
         print(f"▸ {vid}: {cls} ← {q.get('source')}:{q.get('finding')}")
         print(f"    attack: {vec['technique'][:100]}")
