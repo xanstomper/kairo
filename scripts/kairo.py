@@ -245,7 +245,47 @@ TECHNIQUE_CLASSES = {
                     "test": "observe then replay {asset} traffic per documented class (lab spectrum)",
                     "proof": "replay accepted / pairing bypassed on owned device",
                     "flaw": (18, "M"), "craft": "OTHER"},
-}
+    "CLOUDCFG":    {"kw": ("aws", "gcp", "azure", "iam", "role", "policy"),
+                    "primitive": "cloud identity/config trust misplaced",
+                    "test": "enumerate own-estate IAM/roles per documented CIS classes",
+                    "proof": "over-privileged role accepted / config readable",
+                    "flaw": (13, "K"), "craft": "OTHER"},
+    "KUBESEC":     {"kw": ("kubernetes", "k8s", "pod", "cluster", "helm"),
+                    "primitive": "cluster boundary trust (RBAC/service-account)",
+                    "test": "read-only RBAC/SA inventory; documented escape classes only",
+                    "proof": "documented RBAC gap class matched",
+                    "flaw": (13, "K"), "craft": "OTHER"},
+    "APILAYER":    {"kw": ("rate limit", "limiter", "throttle", "quota"),
+                    "primitive": "limiter keyed to spoofable/weak inputs",
+                    "test": "vary keying inputs (header/IP/param) on own endpoints",
+                    "proof": "limit bypassed by documented keying class",
+                    "flaw": (4, "D"), "craft": "OTHER"},
+    "MAILRELAY":   {"kw": ("spf", "dkim", "dmarc", "smtp", "mail"),
+                    "primitive": "sender-trust chain gaps",
+                    "test": "record audit + documented relay/spoof classes (own domain)",
+                    "proof": "documented trust gap class matched",
+                    "flaw": (9, "I"), "craft": "OTHER"},
+    "DOMTAKE":     {"kw": ("cname", "subdomain", "dangling", "nameserver"),
+                    "primitive": "dangling resource → external claim",
+                    "test": "inventory dangling records on own domains (read-only)",
+                    "proof": "dangling record class confirmed",
+                    "flaw": (7, "A"), "craft": "OTHER"},
+    "CIPIPE":      {"kw": ("actions", "workflow", "jenkins", "pipeline"),
+                    "primitive": "pipeline trust boundaries (secrets/injection)",
+                    "test": "own-pipeline config audit per documented CI classes",
+                    "proof": "documented injection/secret class matched",
+                    "flaw": (19, "N"), "craft": "OTHER"},
+    "DBLAYER":     {"kw": ("postgres", "mysql", "mongo", "redis", "database"),
+                    "primitive": "data-store exposure/trust classes",
+                    "test": "read-only schema/ACL inventory via harvested access",
+                    "proof": "documented exposure class matched",
+                    "flaw": (15, "G"), "craft": "OTHER"},
+    "MOBILEX":     {"kw": ("android", "apk", "ios", "ipa", "mobile"),
+                    "primitive": "client-side trust in shipped binaries",
+                    "test": "static string/config audit of own builds (MASTG classes)",
+                    "proof": "documented MASTG class matched",
+                    "flaw": (16, "L"), "craft": "OTHER"},
+
 SYNTH_OPS = ("SEAM", "FAMILY", "ESCALATE", "MIRROR", "TRANSPOSE")
 CLASS_TO_FLAW_NAME = {6: "identifier-trust", 5: "state-machine-gaps", 10: "entropy/forge",
                       1: "validation-order", 17: "firmware-hardware", 18: "wireless-rf"}
@@ -440,7 +480,7 @@ def cmd_distribute(args):
 SEAM_SIBLINGS = {"C": "E", "B": "F", "E": "C", "F": "B", "L": "M", "M": "L"}
 FLAW_SIBLINGS = {6: 2, 2: 6, 5: 1, 1: 5, 10: 3, 3: 10, 17: 16, 18: 14}
 ESCALATE_PROOF = {"read": "write", "accepted": "granted", "returns 200": "grants the resource"}
-CHAIN_ORDER = {"AUTHBYPASS": 0, "ENTITLEMENT": 0, "BOUNDARY": 1, "REPLAY": 2,
+CHAIN_ORDER = {"AUTHBYPASS": 0, "DOMTAKE": 1, "APILAYER": 1, "CLOUDCFG": 1, "KUBESEC": 1, "CIPIPE": 2, "MAILRELAY": 2, "DBLAYER": 2, "MOBILEX": 3, "ENTITLEMENT": 0, "BOUNDARY": 1, "REPLAY": 2,
                "STATEBYPASS": 2, "HDRADIO": 2, "MATH": 3, "HWFLASH": 3}
 
 
