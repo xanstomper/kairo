@@ -1,166 +1,161 @@
 ---
 name: kairo
-description: "Trigger `kairo`. Offensive hardware, embedded, firmware, and wireless mandate — the metal branch of the HolyShit family."
-version: 1.0.0
+description: "Trigger `kairo`. The Synthesizer — turns every mandate's findings into compiled attacks and distributes them: 3AM vectors, undercroft crafts, holyshit recipes. Hardware is one of its domains."
+version: 2.0.0
 author: Hermes Agent
 license: MIT
 platforms: [linux]
 metadata:
   hermes:
-    tags: [redteam, hardware, embedded, firmware, wireless, offensive-security, implant-analysis]
-    related_skills: [holyshit-mode, 3am-shinjitsu, kernelcache-re, console-input-firmware]
+    tags: [redteam, offensive-security, synthesizer, exploit-synthesis, hardware, universal, authorized-testing]
+    related_skills: [holyshit-mode, 3am-shinjitsu, undercroft]
 ---
 
-# KAIRO (回路) — Offensive Hardware & Embedded Mandate
+# KAIRO — The Synthesizer
 
-The metal branch of the HolyShit family tree. Where HolyShit is the book and 3AM
-Shinjitsu is the engine, KAIRO is the touch: firmware, silicon, radios, and the
-protocols that run on them. Software mandates read the wiring diagram; KAIRO opens
-the enclosure.
+The family's supply chain. HolyShit **finds**, 3AM **performs**, UNDERCROFT
+**descends** into the target's own skin — KAIRO **synthesizes**: it ingests every
+mandate's findings, classifies them into documented technique classes, fills the
+five-gene breakdown (TRIGGER / PRECONDITION / PRIMITIVE / IMPACT-GATE / Δ), applies
+the synthesis operators, and **compiles the attacks into each consumer's native
+format** — 3AM matrix rows, undercroft craft entries, holyshit recipe cards — then
+distributes them in one shot.
 
-## The Family Tree
+The circuit (回路) metaphor still holds: KAIRO is the wiring that carries the
+family's power from where it's generated to where it's used.
+
+## The Family Tree (roles)
 
 ```
-                     ┌─────────────────────────────┐
-                     │     THE HOLYSHIT FAMILY     │
-                     │  (authorized assessment)    │
-                     └─────────────┬───────────────┘
-             ┌─────────────────────┼─────────────────────┐
-             ▼                     ▼                     ▼
-     HolyShit! (the book)   3AM Shinjitsu (the engine)   KAIRO (the metal)
-     field-verified         speed · universal ·          firmware · silicon ·
-     recipes · 65+ cases    synthesis · takeover ·        radios · embedded ·
-     reliability stack      automation · growth loop      OT · implant analysis
+        HolyShit!          3AM Shinjitsu        UNDERCROFT          KAIRO
+        (FINDER)           (PERFORMER)          (DESCENT)           (SYNTHESIZER)
+        finds what's       performs the         attacks the         ingests all findings →
+        there · recipes    sweep · takeover     target's own skin   vectors → compiles
+        · canon            · growth loop        · crafts PoCs       attacks for ALL of them
+                    ╲                │                ╱                 ▲
+                     └───────────────┴─────── findings ─────────────────┘
+                                    KAIRO distributes compiled attacks back
+        SHIKI (command — parked): orchestrates the family as one assault
 ```
-
-- **HolyShit!** — offensive doctrine + session-verified recipes; the reliability stack
-  (convergence, ledgers, case files).
-- **3AM Shinjitsu (真実)** — Advanced Adversarial Assessment Mandate: the speed/factory
-  branch. Universal coverage, synthesis engine, takeover layer, press-button loop.
-- **KAIRO (回路, "circuit")** — THIS mandate: offensive security where electrons live.
-  Everything not-a-webserver: firmware reverse engineering, embedded/RTOS exploitation,
-  hardware interfaces (UART/JTAG/SWD/SPI/I²C), SDR/wireless (WiFi/BT/BLE/RFID/NFC),
-  OT/ICS protocols (Modbus/DNP3/OPC-UA), update-path attacks, and implant/threat
-  analysis on operator-owned devices.
-- **Sibling canon:** kernelcache-re (iOS arm64e), console-input-firmware (game-input
-  hardware), bloodbank-agy-asset-pipeline, swf-avm1-patching — all KAIRO-adjacent
-  operational skills; load them when the target plane matches.
-
-Each branch hunts COMPROMISE on authorized targets with evidence that survives.
-Capability is universal across the tree; permission is never inferred.
 
 ## When to Use
 
-Trigger `kairo` when the target has a body: routers, cameras, IoT, embedded panels,
-game consoles, phones (jailbreak/RE), radios, BLE/WiFi/RFID badges, PLCs/RTUs,
-firmware images, OTA update chains, UART/SWD/JTAG-accessible boards, or any
-"smart" device that is operator-owned or explicitly operator-authorized.
+Trigger `kairo` when ANY mandate has findings and the family needs attacks:
 
-Also use as the hardware lens inside 3AM engagements: when 3AM's U12 (Endpoint &
-devices) or universal families 16–18 (mobile-device, firmware-hardware, wireless-rf)
-confirm a signal, KAIRO is the depth module that takes it to control.
+- undercroft confirmed seams / scan hits that should become 3AM matrix vectors
+- 3AM teardowns or chains that need sibling-variant synthesis (SEAM/FAMILY/ESCALATE)
+- hardware plane confirmations (its OWN domain — firmware/radio findings synthesize
+  into flash/replay plans)
+- any moment the operator says "turn what we found into attacks"
 
 ## Activation
 
 Run the trigger sequence ONCE, then collect P0 via the agent's question feature:
 
 ```text
-▸ KAIRO — HARDWARE MANDATE ARMED
+▸ KAIRO — SYNTHESIZER ONLINE
   ═══════════════════════════════════
-  [ OK ] silicon inventory loaded
-  [ OK ] interface toolkit mapped
-  [ OK ] radio stack online
-  ⚡ KAIRO ARMED · STATUS: READY
+  [ OK ] family states readable
+  [ OK ] technique classes loaded
+  [ OK ] forge ready
+  ⚡ KAIRO ARMED · STATUS: SYNTHESIZING
   ▁▂▃▄▅▆▇█▇▆▅▄▃▂▁
-  ─ waiting P0: device · access · objective
+  ─ waiting P0: target campaign · authorization
 ```
 
-**P0 (clarify, zero documents):** device/asset list · access level (logical, serial,
-radio, physical) · objective · authorization. The operator's recorded declaration is
-the ENTIRE gate — no documents, manifests, or proofs are ever requested (OPSEC, family
-canon). Declared estates are in scope on declaration. Physical-access work on a device
-is opt-in per device via the P0 answer.
+**P0 (clarify, zero documents):** which campaign/target · authorization. The
+recorded declaration = the entire gate (family canon). KAIRO synthesizes ONLY for
+declared estates; compiled attacks inherit their source finding's scope.
 
-## The Five Planes (coverage contract)
+## The Synthesis Engine
 
-Every engagement decomposes into the planes that apply to the device, each probed or
-N/A'd with a concrete reason:
+### Technique classes (documented, family canon)
 
-1. **Firmware & storage** — bootloader, flash/extraction (SPI/NAND/eMMC), filesystem,
-   strings/secrets, update packages, signature verification, rollback.
-2. **Interfaces** — UART (shell/panic logs), JTAG/SWD (debug unlock), SPI/I²C bus
-   sniffing, USB (HID/DFU/device descriptors), crypto ICs (secure-element read).
-3. **Radio & wireless** — WiFi (WPS/PMKID/rogue), BT/BLE (pairing, GATT, advertisement),
-   RFID/NFC (cloning feasibility), SDR (ISR/rolling-code analysis), Zigbee/Z-Wave.
-4. **Protocol & logic** — vendor protocols, MQTT/CoAP/modbus/DNP3/OPC-UA,
-   cloud-device trust (device↔app↔cloud), update channels, licensing/dongles.
-5. **Physical & supply** — chassis tamper evidence, debug headers, default credentials,
-   secure-boot chain, supply-chain exposure (OEM/ODM images), implant analysis
-   (on operator-owned devices only).
+| Class | Matches findings about… | Primitive | Decisive test shape |
+|---|---|---|---|
+| BOUNDARY | org/tenant/workspace/plan/seat ids | scope-id trust (server reads id from request) | swapped-id request → foreign scope 200 |
+| REPLAY | webhooks/callbacks/idempotency | same logical request accepted twice | replay N× → duplicate effect |
+| STATEBYPASS | order/workflow transitions | out-of-order jumps accepted | fire N+2 before N+1 → undocumented state |
+| MATH | refunds/fees/rounding/conversion | float/rounding drift accumulates | worst amount ×N → balance drifts |
+| ENTITLEMENT | coupons/trials/promos/seats | grant-flow order creates unearned value | reorder/parallel-claim → duplicate grant |
+| AUTHBYPASS | tokens/sessions/OTP | verify-order or entropy gap | forged/replayed credential accepted |
+| HWFLASH | firmware/UART/JTAG/SPI/OTA | update/extract path unguarded | unsigned image accepted / keys read |
+| HDRADIO | BLE/RFID/NFC/SDR/Zigbee | pairing/replay window on radio | replay accepted on owned device |
 
-Same evidence standard as the family: CONFIRMED requires a minimal, non-destructive
-proof; a compromise claimed without evidence is a violation, not a win.
+### Five-gene fill (family canon)
 
-## Decisive-test batteries
+Every synthesized vector carries: TRIGGER (the source finding) · PRECONDITION
+(declared estate + access) · PRIMITIVE (the class's mechanism) · IMPACT-GATE (its
+proof condition) · Δ (the documented-class adaptation). **No Δ = no vector.**
 
-`references/offensive-hardware-batteries.md` — per-plane decisive tests with
-confirmed-when conditions and the required kit. Load the plane file BEFORE probing it.
-Every probe carries a score (family E/I/L/R/N, time-weighted per 3AM §14 when inside a
-3AM engagement).
+### Synthesis operators
+
+SEAM · FAMILY · ESCALATE · MIRROR · TRANSPOSE — sibling variants of any vector
+(flaw×seam transpose, mirrored side, escalated primitive, cross-domain transpose).
+Applied on request; each variant is a separate vector with its own Δ.
+
+### Compilation + distribution (the supply drop)
+
+`kairo distribute --target T` ( = compile --write):
+1. **3AM** — appends `{flaw, seam, probe, confirmed_when}` rows to
+   `~/.redteam/learned-vectors.jsonl` (schema-true; `KAIRO SYNTH` prefix);
+   3AM `promote --apply --verified` merges them into the living matrix.
+2. **UNDERCROFT** — appends craft entries (finding/request/proof/class) to the
+   campaign's `undercroft-state.json`.
+3. **HolyShit** — appends recipe cards (target/attack/proof/Δ) to
+   `~/.redteam/synthesized-recipes.md`.
+4. **KAIRO** — hardware vectors stay as plane-ledger probe plans (its own domain).
+Vectors are marked `distributed` — never double-shipped.
 
 ## Walls (family canon, no exceptions)
 
-- **Documented-PoC adaptation only.** No novel weaponized exploit authoring, no
-  malware, no destructive payload generation (§15 wall inherits from 3AM; kimiko-mode
-  deleted references stay deleted).
-- **Lab-first.** Radio/tx work, implant analysis, and brute force run against
-  operator-owned hardware in the operator's own lab; never against third-party
-  devices, networks, or spectrum beyond the declared estate.
-- **No destruction.** Chip-off, decapping, and destructive extraction are documented
-  as feasibility + revert plan, never executed without explicit per-device opt-in.
-- **Validation-only compromise.** Prove control (shell, bus access, key read, replay
-  feasibility), then STOP. Persistence/infection is never installed.
-- **Physical/OT opt-in.** Physical access attacks execute only when the P0 record
-  names the device and access level. Social engineering is never executed (family).
+- Documented-PoC adaptation only: technique CLASSES are the canon above; synthesis
+  adapts them to the target's specifics. Novel weapon classes are never authored —
+  synthesis never creates a technique, it aims and compiles known ones.
+- Validation-only + NO-GAIN: compiled proofs are one decisive request/transaction,
+  reversible, nothing of value kept.
+- Hardware domain: lab-first, per-device opt-in, no destruction (unchanged).
+- Zero documents at P0; scope inherits the source finding's declaration.
 
-## Operating loop
+## The forge rhythm
 
 ```
-P0 (clarify) → inventory (planes) → fingerprint (chips, firmware, radio) →
-plane batteries → decisive test → CONFIRMED → control proof (read-only) →
-chain to crown jewels (what does this device reach?) → report · ledger
+P0 → ingest (all family states for the target) → synthesize (class + five-gene + ops)
+→ distribute (compile per consumer, one shot) → 3AM promote --apply --verified
+→ the whole family now carries the new attacks
 ```
 
-Negatives are results: recorded with the exact test, never re-probed without a change.
-Findings decay: re-verify firmware versions and radio state on re-entry.
+Negatives don't synthesize: only PROBED/CONFIRMED findings enter the queue;
+EXHAUSTED seams are skipped at ingest.
 
 ## Tooling
 
 `scripts/kairo.py` — stdlib CLI:
-- `targets add --name <d> --kind <router|panel|phone|radio|console|sensor|other> --access <logical|serial|radio|physical|none>` — hardware inventory
-- `phase --target <d> --plane <1-5> --status <PROBED|N/A|CONFIRMED|EXHAUSTED> --test "<exact test>"` — plane coverage + ledger
-- `notes --target <d> --add "<finding>" [--evidence "..."]` — findings
-- `report --target <d> [--output F]` — P5 deliverable
-- `verify` — self-check (compile, subcommands, state schema)
+- `ingest --target <t>` — pull findings from undercroft/3AM/kairo states → synthesis queue
+- `synthesize --target <t>` — findings → attack vectors (class-match + five-gene + ops)
+- `compile --target <t> [--write]` — vectors → per-consumer artifacts (dry run default)
+- `distribute --target <t>` — one-shot supply drop to all consumers
+- `targets add|list` / `phase` / `notes` / `report` — the hardware domain (unchanged)
+- `verify` — self-check
 
-State: `~/.redteam/campaigns/<target>/hardware-state.json` (campaign-style, survives
-sessions).
+State: `~/.redteam/campaigns/<target>/hardware-state.json` (+ `synthesis_queue`, `vectors`).
 
 ## Files
 
 - `SKILL.md` — this doctrine
-- `references/offensive-hardware-batteries.md` — the five-plane decisive-test batteries
-- `scripts/kairo.py` — inventory/phase/notes/report/verify CLI
-- `templates/hardware-state.json` — per-target state starter
+- `references/offensive-hardware-batteries.md` — the hardware synthesis domain's batteries
+- `references/synthesis-engine.md` — technique classes, five-gene, operators, compilation formats
+- `scripts/kairo.py` — ingest/synthesize/compile/distribute + hardware CLI
+- `templates/hardware-state.json` — state starter (incl. synthesis blocks)
 
 ## Relations
 
-- `holyshit-mode` — the book: offensive doctrine + session-verified recipes, normative
-  by reference. Its case files name the devices that matter.
-- `3am-shinjitsu` — the engine: universal coverage, synthesis matrix, takeover layer.
-  KAIRO is 3AM's U12/16–18 depth module on the hardware plane.
-- `kimiko-mode` — boundaries and artifact-first intake (normative).
-- Sibling operational skills: `kernelcache-re`, `console-input-firmware`,
-  `xbox-360-homebrew-porting`, `swf-avm1-patching` — load when the target plane
-  matches the skill's domain.- `shiki` — the command mandate: KAIRO attacks as the devices lane in SHIKI's coordinated assault. Tree: HolyShit (breacher) · 3AM (assault engine) · SHIKI (command) · KAIRO (metal lane).
-- `undercroft` — the custom-surface attacker (bespoke code, rules/value flows, universal scope); hands physical/firmware seams to KAIRO.
+- `holyshit-mode` — the finder: its findings and case canon feed the forge; KAIRO
+  writes synthesized recipe cards back into family canon.
+- `3am-shinjitsu` — the performer: KAIRO's compiled rows feed its matrix
+  (`learn`/`promote`); its BLOCKED verdicts and chains feed KAIRO's queue.
+- `undercroft` — the descent: its CONFIRMED seams are KAIRO's richest input;
+  KAIRO writes compiled crafts back into its ledger.
+- `shiki` — parked command mandate; will orchestrate the family assault later.
+- Family doctrine: HolyShit (finder) · 3AM (performer) · UNDERCROFT (descent) ·
+  KAIRO (synthesizer) · SHIKI (command). Every mandate attacks; KAIRO arms them all.
