@@ -167,7 +167,8 @@ def cmd_verify(args):
     if r.returncode != 0:
         bad.append("compile")
     for want in ("targets", "phase", "notes", "report", "verify",
-                 "ingest", "synthesize", "compile", "distribute"):
+                 "ingest", "synthesize", "compile", "distribute",
+                 "forge", "chain", "armory"):
         out = subprocess.run([sys.executable, str(self), "--help"],
                              capture_output=True, text=True).stdout
         if want not in out:
@@ -346,9 +347,16 @@ def cmd_synthesize(args):
         print(f"▸ {vid}: {cls} ← {q.get('source')}:{q.get('finding')}")
         print(f"    attack: {vec['technique'][:100]}")
         print(f"    proof:  {vec['proof'][:90]}")
-        for op in SYNTH_OPS:
-            if op in ("SEAM", "FAMILY"):
-                print(f"    op/{op}: sibling variant available via flaw×seam transpose")
+        if getattr(args, "expand", False) or getattr(args, "_expand", False):
+            for op in ("SEAM", "FAMILY", "ESCALATE"):
+                var = _variant(vec, op)
+                vectors.append(var)
+                n += 1
+                print(f"    ↳ variant {var['id']}: {var['delta'].split('+ ')[-1][:80]}")
+        else:
+            for op in SYNTH_OPS:
+                if op in ("SEAM", "FAMILY"):
+                    print(f"    op/{op}: sibling variant available (--expand to generate)")
     save_state(args.target, st)
     print(f"▸ synthesized {n} attack vector(s) — compile next")
     return 0
@@ -412,6 +420,145 @@ def cmd_distribute(args):
     return cmd_compile(args)
 
 
+# ── v2.1.0 the dangerous forge: ops expansion · chains · one-shot forge ──────
+
+SEAM_SIBLINGS = {"C": "E", "B": "F", "E": "C", "F": "B", "L": "M", "M": "L"}
+FLAW_SIBLINGS = {6: 2, 2: 6, 5: 1, 1: 5, 10: 3, 3: 10, 17: 16, 18: 14}
+ESCALATE_PROOF = {"read": "write", "accepted": "granted", "returns 200": "grants the resource"}
+CHAIN_ORDER = {"AUTHBYPASS": 0, "ENTITLEMENT": 0, "BOUNDARY": 1, "REPLAY": 2,
+               "STATEBYPASS": 2, "HDRADIO": 2, "MATH": 3, "HWFLASH": 3}
+
+
+def _variant(base_vec, op):
+    """Emit ONE concrete sibling variant of a vector per synthesis op."""
+    import copy
+    v = copy.deepcopy(base_vec)
+    v["id"] = f"{base_vec['id']}-{op}"
+    v["op"] = op
+    if op == "SEAM":
+        flaw, seam = TECHNIQUE_CLASSES[v["class"]]["flaw"]
+        sib = SEAM_SIBLINGS.get(seam, "E")
+        v["technique"] = f"[SEAM→{sib}] {base_vec['technique']} (same primitive, trust seam {seam}→{sib})"
+        v["delta"] = f"{base_vec['delta']} + SEAM transpose {seam}→{sib}"
+    elif op == "FAMILY":
+        flaw, seam = TECHNIQUE_CLASSES[v["class"]]["flaw"]
+        sib = FLAW_SIBLINGS.get(flaw, flaw)
+        v["technique"] = f"[FAMILY→flaw{sib}] {base_vec['technique']} (sibling flaw family {flaw}→{sib})"
+        v["delta"] = f"{base_vec['delta']} + FAMILY transpose {flaw}→{sib}"
+    elif op == "ESCALATE":
+        t = base_vec["technique"]
+        for a, b in ESCALATE_PROOF.items():
+            t = t.replace(a, b)
+        v["technique"] = f"[ESCALATE] {t} (validation-only, reversible)"
+        v["proof"] = f"escalated: {base_vec['proof']} (write/grant proof — still no-gain, reversed after)"
+        v["delta"] = f"{base_vec['delta']} + ESCALATE (read→write proof class)"
+    elif op == "MIRROR":
+        v["technique"] = f"[MIRROR] invert the trust direction of: {base_vec['technique']} (the seam's other side)"
+        v["delta"] = f"{base_vec['delta']} + MIRROR (trust direction inverted)"
+    elif op == "TRANSPOSE":
+        v["technique"] = f"[TRANSPOSE] same primitive on a different domain surface: {base_vec['technique']} (cross-domain transpose)"
+        v["delta"] = f"{base_vec['delta']} + TRANSPOSE (domain swapped)"
+    return v
+
+
+def cmd_forge(args):
+    """ONE COMMAND: ingest → synthesize (+op expansion) → distribute."""
+    print(f"═══ KAIRO FORGE — {args.target} ═══")
+    r = cmd_ingest(args)
+    if r != 0:
+        return r
+    if args.expand:
+        args._expand = True
+    r = cmd_synthesize(args)
+    if r != 0:
+        return r
+    args.write = True
+    r = cmd_compile(args)
+    print("═══ forge complete — the family is armed ═══")
+    return r
+
+
+def cmd_chain(args):
+    """Synthesize multi-hop attack chains from the vector pool (3AM chain format)."""
+    st = load_state(args.target)
+    if not st:
+        print(f"✗ no state for '{args.target}'", file=sys.stderr)
+        return 2
+    vectors = st.get("vectors", [])
+    if len(vectors) < 2:
+        print("· need ≥2 vectors — synthesize first", file=sys.stderr)
+        return 2
+    chains = st.setdefault("chains", [])
+    known_c = {c.get("chain") for c in chains}
+    ordered = sorted(vectors, key=lambda v: CHAIN_ORDER.get(v["class"], 9))
+    made = 0
+    # best chains: entry vector → mid vector → value vector (up to 3 hops, distinct classes)
+    hops = min(args.hops, 3)
+    classes_seen, picks = set(), []
+    for v in ordered:
+        if v["class"] not in classes_seen:
+            picks.append(v)
+            classes_seen.add(v["class"])
+        if len(picks) == hops:
+            break
+    if len(picks) < 2:
+        print("· need ≥2 distinct classes for a chain")
+        return 0
+    chain_name = "→".join(p["class"] for p in picks) + ":TAKEOVER"
+    if chain_name in known_c:
+        print(f"· chain already synthesized: {chain_name}")
+        return 0
+    chains.append({"chain": chain_name, "hops": [{"id": p["id"], "class": p["class"],
+                                                  "technique": p["technique"][:100]} for p in picks],
+                   "status": "TAKEOVER-CANDIDATE", "at": datetime.now(timezone.utc).isoformat()})
+    made += 1
+    print(f"▸ chain: {chain_name}")
+    for i, p in enumerate(picks, 1):
+        print(f"    hop {i} [{p['class']}]: {p['technique'][:95]}")
+    print(f"    gate: final hop's decisive proof = TAKEOVER; else PARTIAL (named gap)")
+    # write 3AM chain row
+    if args.write:
+        cf = Path.home() / ".redteam" / "synthesized-chains.jsonl"
+        cf.parent.mkdir(parents=True, exist_ok=True)
+        with cf.open("a") as f:
+            f.write(json.dumps({"chain": chain_name,
+                                "hops": [p["technique"][:100] for p in picks],
+                                "target": args.target}) + "\n")
+        print(f"    → chain row → {cf}")
+    save_state(args.target, st)
+    return 0
+
+
+def cmd_armory(args):
+    """The family armory: vectors, ops coverage, chains, distribution state."""
+    st = load_state(args.target)
+    if not st:
+        print(f"✗ no state for '{args.target}'", file=sys.stderr)
+        return 2
+    vectors = st.get("vectors", [])
+    chains = st.get("chains", [])
+    by_class = {}
+    for v in vectors:
+        by_class.setdefault(v["class"], []).append(v)
+    print(f"═══ KAIRO ARMORY — {args.target} ═══")
+    print(f"  vectors: {len(vectors)} across {len(by_class)} classes")
+    for cls in sorted(by_class):
+        vs = by_class[cls]
+        dist = sum(1 for v in vs if v.get("distributed"))
+        print(f"    {cls:12s} ×{len(vs)}  (distributed: {dist})")
+    ops = sum(1 for v in vectors if v.get("op"))
+    print(f"  op-variants: {ops} · base: {len(vectors) - ops}")
+    print(f"  chains: {len(chains)}")
+    for c in chains:
+        print(f"    {c['chain']}  [{c['status']}]")
+    pending = sum(1 for v in vectors if not v.get("distributed"))
+    if pending:
+        print(f"  ! {pending} vector(s) NOT distributed — run: kairo distribute --target {args.target}")
+    else:
+        print("  ✓ all vectors distributed — family armed")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description="KAIRO — family synthesizer + hardware CLI")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -425,6 +572,15 @@ def main():
     cm.add_argument("--write", action="store_true", help="write to all consumers")
     ds = sub.add_parser("distribute", help="compile --write: one-shot family supply drop")
     ds.add_argument("--target", required=True)
+    fg = sub.add_parser("forge", help="ONE COMMAND: ingest → synthesize (expand) → distribute")
+    fg.add_argument("--target", required=True)
+    fg.add_argument("--expand", action="store_true", help="generate SEAM/FAMILY/ESCALATE variants")
+    ch = sub.add_parser("chain", help="synthesize multi-hop attack chains from the vector pool")
+    ch.add_argument("--target", required=True)
+    ch.add_argument("--hops", type=int, default=3)
+    ch.add_argument("--write", action="store_true", help="write 3AM chain row")
+    ar = sub.add_parser("armory", help="family armory: vectors · variants · chains · distribution")
+    ar.add_argument("--target", required=True)
 
     t = sub.add_parser("targets", help="register/list devices")
     t.add_argument("action", choices=("add", "list"))
@@ -474,6 +630,12 @@ def main():
         return cmd_compile(a)
     if a.cmd == "distribute":
         return cmd_distribute(a)
+    if a.cmd == "forge":
+        return cmd_forge(a)
+    if a.cmd == "chain":
+        return cmd_chain(a)
+    if a.cmd == "armory":
+        return cmd_armory(a)
     return 2
 
 

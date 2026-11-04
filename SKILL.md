@@ -1,7 +1,7 @@
 ---
 name: kairo
 description: "Trigger `kairo`. The Synthesizer — turns every mandate's findings into compiled attacks and distributes them: 3AM vectors, undercroft crafts, holyshit recipes. Hardware is one of its domains."
-version: 2.0.0
+version: 2.1.0
 author: Hermes Agent
 license: MIT
 platforms: [linux]
@@ -117,6 +117,21 @@ Vectors are marked `distributed` — never double-shipped.
 - Hardware domain: lab-first, per-device opt-in, no destruction (unchanged).
 - Zero documents at P0; scope inherits the source finding's declaration.
 
+## The Dangerous Forge (v2.1.0)
+
+- **`forge --target T --expand`** — ONE command: ingest → synthesize with **real op
+  expansion** (each base vector spawns SEAM/FAMILY/ESCALATE sibling variants with
+  their own Δ — 1 finding can become 4 attacks) → distribute to every consumer.
+  Verified: 2 findings → 8 vectors → family armed.
+- **`chain --target T [--write]`** — synthesizes multi-hop attack chains from the
+  vector pool (entry → mid → value ordering by class), emits 3AM chain format
+  (`BOUNDARY→REPLAY:TAKEOVER`), marks TAKEOVER-CANDIDATE until the final hop's
+  decisive proof lands.
+- **`armory --target T`** — the family arsenal at a glance: vectors by class,
+  op-variant counts, chains, distribution state, pending warnings.
+- Op variants are CONCRETE (not notes): each carries its own id, technique, proof,
+  and Δ; ESCALATE variants stay validation-only (write/grant proof, reversed after).
+
 ## The forge rhythm
 
 ```
@@ -135,6 +150,9 @@ EXHAUSTED seams are skipped at ingest.
 - `synthesize --target <t>` — findings → attack vectors (class-match + five-gene + ops)
 - `compile --target <t> [--write]` — vectors → per-consumer artifacts (dry run default)
 - `distribute --target <t>` — one-shot supply drop to all consumers
+- `forge --target <t> [--expand]` — one command: ingest → synthesize (variants) → distribute
+- `chain --target <t> [--hops N] [--write]` — multi-hop attack-chain synthesis
+- `armory --target <t>` — the family arsenal status
 - `targets add|list` / `phase` / `notes` / `report` — the hardware domain (unchanged)
 - `verify` — self-check
 
