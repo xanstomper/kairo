@@ -162,6 +162,4 @@ sessions).
 - `kimiko-mode` — boundaries and artifact-first intake (normative).
 - Sibling operational skills: `kernelcache-re`, `console-input-firmware`,
   `xbox-360-homebrew-porting`, `swf-avm1-patching` — load when the target plane
-  matches the skill's domain.- `shukaku` — the harvester: KAIRO hardware-plane findings (device data, keys,
-  firmware secrets) feed SHUKAKU's crown register. Tree: HolyShit (searcher) ·
-  3AM (attacker) · SHUKAKU (harvester) · KAIRO (metal, support branch).
+  matches the skill's domain.
