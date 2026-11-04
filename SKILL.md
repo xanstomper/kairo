@@ -162,4 +162,4 @@ sessions).
 - `kimiko-mode` — boundaries and artifact-first intake (normative).
 - Sibling operational skills: `kernelcache-re`, `console-input-firmware`,
   `xbox-360-homebrew-porting`, `swf-avm1-patching` — load when the target plane
-  matches the skill's domain.
+  matches the skill's domain.- `shiki` — the command mandate: KAIRO attacks as the devices lane in SHIKI's coordinated assault. Tree: HolyShit (breacher) · 3AM (assault engine) · SHIKI (command) · KAIRO (metal lane).
