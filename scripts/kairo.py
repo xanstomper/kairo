@@ -285,6 +285,7 @@ TECHNIQUE_CLASSES = {
                     "test": "static string/config audit of own builds (MASTG classes)",
                     "proof": "documented MASTG class matched",
                     "flaw": (16, "L"), "craft": "OTHER"},
+}
 
 SYNTH_OPS = ("SEAM", "FAMILY", "ESCALATE", "MIRROR", "TRANSPOSE")
 CLASS_TO_FLAW_NAME = {6: "identifier-trust", 5: "state-machine-gaps", 10: "entropy/forge",
