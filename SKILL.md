@@ -55,7 +55,7 @@ Run the trigger sequence ONCE, then collect P0 via the agent's question feature:
 
 ```text
 ▸ KAIRO — SYNTHESIZER ONLINE
-  ═══════════════════════════════════
+
   [ OK ] family states readable
   [ OK ] technique classes loaded
   [ OK ] forge ready
