@@ -33,6 +33,7 @@ Exit codes: 0 ok · 1 gene/chain-validate failure · 2 usage/state error.
 """
 import argparse
 import json
+import os
 import sys
 import subprocess
 from datetime import datetime, timezone
@@ -430,6 +431,10 @@ def cmd_compile(args):
         return 0
     out3am, outuc, outrecipes = [], [], []
     for v in vectors:
+        if args.require_validated and v.get("validated") is not True:
+            print(f"    ⊘ skip {v['id'][:44]} — not range-validated "
+                  f"(run: kairo validate --target {args.target})")
+            continue
         spec = TECHNIQUE_CLASSES[v["class"]]
         flaw, seam = spec["flaw"]
         out3am.append({"flaw": flaw, "seam": seam,
@@ -668,6 +673,127 @@ def cmd_gene(args):
     return 0
 
 
+# Which dojo replicas can prove a kairo-class vector? Explicit, no guesses —
+# a class with no replica stays NO-REPLICA (never falsely validated).
+VALIDATE_CLASS_MAP = {
+    "BOUNDARY":   ["BOUNDARY"],
+    "REPLAY":     ["REPLAY"],
+    "AUTHBYPASS": ["AUTHN", "JWT", "SESSION"],
+    "ENTITLEMENT": ["REPLAY", "BOUNDARY"],
+    "DBLAYER":    ["INJECTION"],
+}
+
+
+def _dojo_engine():
+    """Locate the dojo engine: $SPYDERMONKEY_DOJO → ~/dojo → skill-tree sibling."""
+    import importlib.util as _ilu
+    cands = []
+    env = os.environ.get("SPYDERMONKEY_DOJO", "")
+    if env:
+        cands.append(Path(env))
+    cands += [Path.home() / "dojo" / "scripts" / "dojo.py",
+              Path(__file__).resolve().parent.parent.parent
+              / "dojo" / "scripts" / "dojo.py"]
+    for c in cands:
+        if c.exists():
+            spec = _ilu.spec_from_file_location("dojo_engine", str(c))
+            mod = _ilu.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            return mod
+    return None
+
+
+def _free_port():
+    import socket
+    s = socket.socket()
+    s.bind(("127.0.0.1", 0))
+    p = s.getsockname()[1]
+    s.close()
+    return p
+
+
+def cmd_validate(args):
+    """THE RANGE-PROOF GATE (the flywheel): every vector is proven against the
+    dojo replicas BEFORE distribution — spawn the class replica, strike it,
+    and only a real confirm-string hit marks the vector VALIDATED. Anything
+    less never ships with compile --require-validated. synthesize → validate →
+    distribute → absorb → kage-mirror: the loop closes."""
+    st = load_state(args.target)
+    if not st:
+        print(f"✗ no state for '{args.target}'", file=sys.stderr)
+        return 2
+    vectors = [v for v in st.get("vectors", [])
+               if args.force or not v.get("distributed")]
+    if not vectors:
+        print("· nothing to validate (all vectors already distributed; use --force)")
+        return 0
+    dj = _dojo_engine()
+    if dj is None:
+        print("✗ dojo engine not on disk — validation needs the range "
+              "(SPYDERMONKEY_DOJO or ~/dojo)", file=sys.stderr)
+        return 1
+    import time
+    ok = fail = norep = 0
+    print(f"═══ KAIRO VALIDATE — {len(vectors)} vector(s) against the range ═══")
+    for v in vectors:
+        cls = str(v.get("class", "")).upper()
+        replicas = (VALIDATE_CLASS_MAP.get(cls)
+                    or ([cls] if cls in dj.CLASSES else []))
+        if not replicas:
+            v["validated"] = None
+            v["validate_note"] = f"no replica for class {cls}"
+            norep += 1
+            print(f"  ⚠ {v['id'][:40]:40s} NO-REPLICA ({cls}) — cannot range-prove")
+            continue
+        tried = []
+        hit = False
+        for rcls in replicas:
+            spec = dj.CLASSES[rcls]
+            port = _free_port()
+            srv = dj._serve(rcls, port)
+            time.sleep(0.3)
+            base = f"http://127.0.0.1:{port}"
+            probe = v.get("probe") or spec.get("probe") or ""
+            confirm = spec.get("confirm", "")
+            path = (probe[5:].strip().split(" ")[0] if probe.startswith("POST ")
+                    else probe.split(" ")[0])
+            try:
+                if probe.startswith("POST "):
+                    import urllib.request as _ur
+                    req = _ur.Request(base + path, data=b"", method="POST")
+                    try:
+                        with _ur.urlopen(req, timeout=5) as r:
+                            hit = (confirm.lower() in
+                                   r.read().decode("utf-8", "replace").lower())
+                    except Exception as e:
+                        body = (e.read().decode("utf-8", "replace")
+                                if hasattr(e, "read") else "")
+                        hit = confirm.lower() in body.lower()
+                else:
+                    hit = dj._strike(base + path, confirm)
+            except Exception:
+                hit = False
+            finally:
+                srv.shutdown()
+            tried.append(f"{rcls}={'HIT' if hit else 'no-diff'}")
+            if hit:
+                break
+        v["validated"] = bool(hit)
+        v["validated_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+        v["validate_note"] = f"dojo[{', '.join(tried)}]"
+        if hit:
+            ok += 1
+            print(f"  ✓ {v['id'][:40]:40s} VALIDATED ({cls} → {tried})")
+        else:
+            fail += 1
+            print(f"  ✗ {v['id'][:40]:40s} FAILED ({cls} → {tried})"
+                  + (f"  [{v['validate_note']}]" if args.verbose else ""))
+    save_state(args.target, st)
+    print(f"═══ {ok} validated · {fail} failed · {norep} no-replica ═══")
+    print("  compile --require-validated ships ONLY the validated ones")
+    return 0 if fail == 0 else 1
+
+
 def cmd_queue(args):
     """The synthesis queue viewer: what's pending, synthesized, exhausted."""
     st = load_state(args.target)
@@ -772,6 +898,9 @@ def main():
     cm = sub.add_parser("compile", help="vectors → per-consumer artifacts (dry run)")
     cm.add_argument("--target", required=True)
     cm.add_argument("--write", action="store_true", help="write to all consumers")
+    cm.add_argument("--require-validated", action="store_true",
+                    help="THE RANGE-PROOF GATE: ship only vectors proved against "
+                         "dojo replicas (kairo validate)")
     ds = sub.add_parser("distribute", help="compile --write: one-shot family supply drop")
     ds.add_argument("--target", required=True)
     fg = sub.add_parser("forge", help="ONE COMMAND: ingest → synthesize (expand) → distribute")
@@ -787,6 +916,13 @@ def main():
     gn = sub.add_parser("gene", help="the five-gene validator (NO Δ = NO VECTOR)")
     gn.add_argument("--check", action="store_true")
     gn.add_argument("--target", required=True)
+    va = sub.add_parser("validate",
+                        help="THE RANGE-PROOF GATE: prove vectors against dojo "
+                             "replicas before distribution (sync → compile)")
+    va.add_argument("--target", required=True)
+    va.add_argument("--force", action="store_true",
+                    help="re-validate already-distributed vectors too")
+    va.add_argument("--verbose", action="store_true")
     q = sub.add_parser("queue", help="synthesis queue viewer")
     q.add_argument("--show", action="store_true")
     q.add_argument("--target", required=True)
@@ -857,6 +993,8 @@ def main():
         return cmd_armory(a)
     if a.cmd == "gene":
         return cmd_gene(a)
+    if a.cmd == "validate":
+        return cmd_validate(a)
     if a.cmd == "queue":
         return cmd_queue(a)
     if a.cmd == "crossdomain":
